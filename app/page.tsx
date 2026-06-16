@@ -4,6 +4,7 @@ import { useState } from "react";
 import LabelUpload from "@/components/LabelUpload";
 import ApplicationForm from "@/components/ApplicationForm";
 import VerificationResultDisplay from "@/components/VerificationResult";
+import BatchUpload from "@/components/BatchUpload";
 import type { ApplicationData, VerificationResult } from "@/types/label";
 
 const DEFAULT_APP_DATA: ApplicationData = {
@@ -18,8 +19,10 @@ const DEFAULT_APP_DATA: ApplicationData = {
 };
 
 type PageState = "idle" | "loading" | "result" | "error";
+type Tab = "single" | "batch";
 
 export default function Home() {
+  const [tab, setTab] = useState<Tab>("single");
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string | null>(null);
   const [appData, setAppData] = useState<ApplicationData>(DEFAULT_APP_DATA);
@@ -35,7 +38,6 @@ export default function Home() {
 
   const handleVerify = async () => {
     if (!canSubmit) return;
-
     setPageState("loading");
     setResult(null);
     setErrorMessage(null);
@@ -44,21 +46,14 @@ export default function Home() {
       const res = await fetch("/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applicationData: appData,
-          imageBase64,
-          imageMimeType,
-        }),
+        body: JSON.stringify({ applicationData: appData, imageBase64, imageMimeType }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         setErrorMessage(data.error ?? "Verification failed. Please try again.");
         setPageState("error");
         return;
       }
-
       setResult(data);
       setPageState("result");
     } catch {
@@ -93,26 +88,47 @@ export default function Home() {
               <p className="text-sm font-semibold text-slate-800 leading-tight">Label Verification Tool</p>
             </div>
           </div>
-          <div className="text-xs text-slate-400 hidden sm:block">
-            Prototype — not for production use
-          </div>
+          <div className="text-xs text-slate-400 hidden sm:block">Prototype — not for production use</div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
+        {/* Tabs */}
+        {pageState !== "result" && (
+          <div className="flex gap-1 mb-6 border-b border-slate-200">
+            {(["single", "batch"] as Tab[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                  tab === t
+                    ? "border-indigo-600 text-indigo-600"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {t === "single" ? "Single Label" : "Batch Upload"}
+                {t === "batch" && (
+                  <span className="ml-1.5 text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-semibold">
+                    up to 300
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
         {pageState === "result" && result ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-800">Verification Complete</h2>
-              <button
-                onClick={handleReset}
-                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-              >
+              <button onClick={handleReset} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
                 ← Verify another label
               </button>
             </div>
-            <VerificationResultDisplay result={result} />
+            <VerificationResultDisplay result={result} applicationData={appData} />
           </div>
+        ) : tab === "batch" ? (
+          <BatchUpload />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -121,10 +137,7 @@ export default function Home() {
                 <p className="text-sm text-slate-500 mt-0.5">Upload the label artwork submitted with the application.</p>
               </div>
               <LabelUpload
-                onImageReady={(b64, mime) => {
-                  setImageBase64(b64);
-                  setImageMimeType(mime);
-                }}
+                onImageReady={(b64, mime) => { setImageBase64(b64); setImageMimeType(mime); }}
                 disabled={isLoading}
               />
             </div>
@@ -134,11 +147,7 @@ export default function Home() {
                 <h2 className="text-base font-semibold text-slate-800">Application Data</h2>
                 <p className="text-sm text-slate-500 mt-0.5">Enter the values from the COLA application form.</p>
               </div>
-              <ApplicationForm
-                data={appData}
-                onChange={setAppData}
-                disabled={isLoading}
-              />
+              <ApplicationForm data={appData} onChange={setAppData} disabled={isLoading} />
             </div>
 
             <div className="lg:col-span-2 border-t border-slate-200 pt-4 flex items-center justify-between gap-4 flex-wrap">
@@ -149,19 +158,12 @@ export default function Home() {
               )}
               <div className="ml-auto flex items-center gap-3">
                 {!canSubmit && (
-                  <p className="text-xs text-slate-400">
-                    Upload a label image and fill in required fields to continue.
-                  </p>
+                  <p className="text-xs text-slate-400">Upload a label image and fill in required fields to continue.</p>
                 )}
                 <button
                   onClick={handleVerify}
                   disabled={!canSubmit || isLoading}
-                  className="
-                    px-6 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold
-                    hover:bg-indigo-700 active:bg-indigo-800 transition-colors
-                    disabled:opacity-40 disabled:cursor-not-allowed
-                    flex items-center gap-2
-                  "
+                  className="px-6 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 active:bg-indigo-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -171,9 +173,7 @@ export default function Home() {
                       </svg>
                       Verifying…
                     </>
-                  ) : (
-                    "Verify Label"
-                  )}
+                  ) : "Verify Label"}
                 </button>
               </div>
             </div>

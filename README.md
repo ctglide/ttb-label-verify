@@ -121,6 +121,106 @@ This is a prototype. The following decisions were made with federal security pos
 
 For production: FedRAMP-authorized hosting, formal ATO process, RBAC, and integration with TTB audit logging infrastructure would be required.
 
+### Network requirement
+
+This prototype makes outbound calls to `api.anthropic.com` (port 443/HTTPS). This is the **only** external dependency — no analytics, no CDN, no other third-party endpoints. If your network restricts outbound traffic, this domain will need to be allowlisted for the tool to function.
+
+---
+
+## API Reference
+
+The verification logic is exposed as a standard REST API returning JSON. Any HTTP client can call it — including .NET applications via `HttpClient`. This makes future integration with COLA or other internal systems straightforward without changes to this codebase.
+
+### POST /api/verify
+
+Verify a single label against application data.
+
+**Request body:**
+```json
+{
+  "applicationData": {
+    "brandName": "OLD TOM DISTILLERY",
+    "classType": "Kentucky Straight Bourbon Whiskey",
+    "alcoholContent": "45% Alc./Vol. (90 Proof)",
+    "netContents": "750 mL",
+    "producerName": "Old Tom Distillery LLC",
+    "producerAddress": "Louisville, KY 40202",
+    "countryOfOrigin": "",
+    "beverageType": "distilled_spirits"
+  },
+  "imageBase64": "<base64-encoded image>",
+  "imageMimeType": "image/jpeg"
+}
+```
+
+**Response body:**
+```json
+{
+  "overallStatus": "approved | rejected | needs_review",
+  "sessionId": "uuid",
+  "processingMs": 2341,
+  "fields": [
+    {
+      "field": "brandName",
+      "label": "Brand Name",
+      "applicationValue": "OLD TOM DISTILLERY",
+      "extractedValue": "OLD TOM DISTILLERY",
+      "status": "pass | fail | warning | not_checked",
+      "note": "Exact match."
+    }
+  ],
+  "governmentWarningResult": {
+    "status": "pass | fail | warning",
+    "extracted": "<text found on label>",
+    "note": "Government warning matches required text exactly."
+  }
+}
+```
+
+**Example .NET call:**
+```csharp
+using var client = new HttpClient();
+var response = await client.PostAsJsonAsync(
+    "https://your-app.vercel.app/api/verify",
+    new { applicationData, imageBase64, imageMimeType }
+);
+var result = await response.Content.ReadFromJsonAsync<VerificationResult>();
+```
+
+---
+
+### POST /api/verify/batch
+
+Verify up to 300 labels in a single request. Request body is an array of the same shape as the single verify endpoint. Processed in parallel chunks of 10.
+
+**Request body:**
+```json
+[
+  { "applicationData": { ... }, "imageBase64": "...", "imageMimeType": "image/jpeg" },
+  { "applicationData": { ... }, "imageBase64": "...", "imageMimeType": "image/png" }
+]
+```
+
+**Response body:**
+```json
+[
+  { "success": true, "result": { ... } },
+  { "success": false, "error": "Extraction failed. Check image quality.", "index": 1 }
+]
+```
+
+Results are returned in the same order as the request. Failed items include an `error` string and do not affect other items in the batch.
+
+**Example .NET call:**
+```csharp
+using var client = new HttpClient();
+var response = await client.PostAsJsonAsync(
+    "https://your-app.vercel.app/api/verify/batch",
+    payloadArray
+);
+var results = await response.Content.ReadFromJsonAsync<BatchResult[]>();
+```
+
 ---
 
 ## Assumptions and limitations
@@ -129,3 +229,27 @@ For production: FedRAMP-authorized hosting, formal ATO process, RBAC, and integr
 - **Batch upload:** Not in this prototype. The stateless architecture supports it — a batch endpoint would call extraction/validation in parallel per label.
 - **Bold detection:** Government warning "GOVERNMENT WARNING:" must appear bold. The tool checks casing (enforceable); bold weight requires agent visual confirmation.
 - **COLA integration:** Standalone prototype per Marcus Williams' IT notes. Live COLA integration is out of scope.
+
+## CFR compliance notes
+
+### ABV tolerances (enforced)
+- Distilled spirits: ±0.3% per 27 CFR 5.65
+- Malt beverages: ±0.3% per 27 CFR 7.65
+- Wine under 14% ABV: ±1.5% per 27 CFR 4.36
+- Wine over 14% ABV: ±1.0% per 27 CFR 4.36
+
+Values within tolerance return `needs_review` (not `rejected`) so agents can confirm.
+
+### Wine ABV exceptions (enforced)
+- Wine under 7% ABV: outside TTB jurisdiction (FDA regulates per FAA Act). Tool flags and skips validation.
+- Wine 7–14% ABV labeled "Table Wine" or "Light Wine": ABV statement is optional per 27 CFR 4.36(a). Tool passes if ABV is absent and class/type matches.
+- Wine over 14% ABV: ABV statement is mandatory.
+
+### "ABV" abbreviation (enforced)
+The abbreviation "ABV" is explicitly prohibited for wine (27 CFR 4.36) and malt beverages (27 CFR 7.65). The tool flags this as a hard fail.
+
+### Malt beverage ABV (enforced as conditional)
+ABV is only mandatory for malt beverages when the product contains alcohol from added flavors or non-beverage ingredients (27 CFR 7.65). The tool surfaces a review note when ABV is absent, directing the agent to verify via application notes.
+
+### Allergen labeling (not enforced — monitoring required)
+TTB published proposed rulemaking in January 2025 (Notice No. 232) that would mandate allergen disclosures on labels for malt beverages, most wine, and all distilled spirits. As of April 2026, **this has not been enacted as a binding legal requirement**. The tool does not enforce allergen checks. Monitor [ttb.gov](https://www.ttb.gov) for final rule publication.

@@ -14,31 +14,31 @@ const EXTRACTION_SYSTEM_PROMPT = `You are a TTB (Alcohol and Tobacco Tax and Tra
 Your sole job is to read an alcohol beverage label image and extract specific regulated fields.
 Return ONLY a valid JSON object. No preamble, no explanation, no markdown fences.
 
-Extract these fields exactly as they appear on the label:
-- brandName: The brand name of the product
-- classType: The class and type designation (e.g., "Kentucky Straight Bourbon Whiskey")
-- alcoholContent: The full alcohol content string as printed (e.g., "45% Alc./Vol. (90 Proof)")
-- netContents: Net contents as printed (e.g., "750 mL")
-- producerName: Name of bottler, producer, or importer
-- producerAddress: Full address of bottler/producer/importer
-- countryOfOrigin: Country of origin if stated (null if not present)
-- governmentWarning: The complete government warning statement, character-for-character as it appears
+For each field, extract the value exactly as it appears and rate your confidence:
+- "high": text is clear, unambiguous, fully readable
+- "medium": text is readable but partially obscured, small, stylized, or at a mild angle
+- "low": text is barely readable due to glare, fading, damage, extreme angle, or decorative fonts
 
-For any field you cannot read or is not present, return null.
-Add any extraction caveats (image quality, partial occlusion, ambiguity) to the extractionNotes array.
+Also assess overall image quality:
+- "good": label is clearly photographed, all areas readable
+- "degraded": some areas difficult to read (glare, angle, shadows, fading)
+- "poor": significant portions unreadable, results may be unreliable
 
-Return format:
+Return format (all fields required):
 {
-  "brandName": string | null,
-  "classType": string | null,
-  "alcoholContent": string | null,
-  "netContents": string | null,
-  "producerName": string | null,
-  "producerAddress": string | null,
-  "countryOfOrigin": string | null,
-  "governmentWarning": string | null,
-  "extractionNotes": string[]
-}`;
+  "brandName": { "value": string | null, "confidence": "high"|"medium"|"low", "confidenceNote": string | null },
+  "classType": { "value": string | null, "confidence": "high"|"medium"|"low", "confidenceNote": string | null },
+  "alcoholContent": { "value": string | null, "confidence": "high"|"medium"|"low", "confidenceNote": string | null },
+  "netContents": { "value": string | null, "confidence": "high"|"medium"|"low", "confidenceNote": string | null },
+  "producerName": { "value": string | null, "confidence": "high"|"medium"|"low", "confidenceNote": string | null },
+  "producerAddress": { "value": string | null, "confidence": "high"|"medium"|"low", "confidenceNote": string | null },
+  "countryOfOrigin": { "value": string | null, "confidence": "high"|"medium"|"low", "confidenceNote": string | null },
+  "governmentWarning": { "value": string | null, "confidence": "high"|"medium"|"low", "confidenceNote": string | null },
+  "imageQuality": "good"|"degraded"|"poor",
+  "imageQualityNotes": string[]
+}
+
+confidenceNote should explain WHY confidence is medium or low (e.g. "Text rendered in decorative script font", "Partial glare obscures last two digits", "Label photographed at angle"). Set to null for high confidence fields.`;
 
 function buildUserPrompt(beverageType: BeverageType): string {
   const typeNote =
@@ -60,7 +60,7 @@ export async function extractLabelFields(
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 1000,
+    max_tokens: 1500,
     system: EXTRACTION_SYSTEM_PROMPT,
     messages: [
       {
@@ -92,7 +92,6 @@ export async function extractLabelFields(
     throw new Error("No text response from extraction model.");
   }
 
-  // Strip any accidental markdown fences before parsing
   const raw = textBlock.text.replace(/```(?:json)?/g, "").trim();
 
   let parsed: ExtractedLabelData;
@@ -104,9 +103,8 @@ export async function extractLabelFields(
     );
   }
 
-  // Ensure extractionNotes is always an array
-  if (!Array.isArray(parsed.extractionNotes)) {
-    parsed.extractionNotes = [];
+  if (!Array.isArray(parsed.imageQualityNotes)) {
+    parsed.imageQualityNotes = [];
   }
 
   return parsed;

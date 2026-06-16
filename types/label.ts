@@ -13,16 +13,25 @@ export interface ApplicationData {
   beverageType: BeverageType;
 }
 
+export type FieldConfidence = "high" | "medium" | "low";
+
+export interface ExtractedField {
+  value: string | null;
+  confidence: FieldConfidence;
+  confidenceNote: string | null; // e.g. "Text partially obscured by glare"
+}
+
 export interface ExtractedLabelData {
-  brandName: string | null;
-  classType: string | null;
-  alcoholContent: string | null;
-  netContents: string | null;
-  producerName: string | null;
-  producerAddress: string | null;
-  countryOfOrigin: string | null;
-  governmentWarning: string | null;
-  extractionNotes: string[];
+  brandName: ExtractedField;
+  classType: ExtractedField;
+  alcoholContent: ExtractedField;
+  netContents: ExtractedField;
+  producerName: ExtractedField;
+  producerAddress: ExtractedField;
+  countryOfOrigin: ExtractedField;
+  governmentWarning: ExtractedField;
+  imageQuality: "good" | "degraded" | "poor";
+  imageQualityNotes: string[]; // surface to agent: glare, angle, fading, etc.
 }
 
 export type FieldStatus = "pass" | "fail" | "warning" | "not_checked";
@@ -32,8 +41,17 @@ export interface FieldResult {
   label: string;
   applicationValue: string;
   extractedValue: string | null;
+  confidence: FieldConfidence;
+  confidenceNote: string | null;
   status: FieldStatus;
   note: string;
+  // Set by agent after manual review
+  agentOverride?: {
+    decision: "accepted" | "rejected";
+    correctedValue?: string; // if agent manually edited the extracted value
+    reason: string;
+    timestamp: string;
+  };
 }
 
 export interface VerificationResult {
@@ -42,8 +60,17 @@ export interface VerificationResult {
   governmentWarningResult: {
     status: FieldStatus;
     extracted: string | null;
+    confidence: FieldConfidence;
+    confidenceNote: string | null;
     note: string;
+    agentOverride?: {
+      decision: "accepted" | "rejected";
+      reason: string;
+      timestamp: string;
+    };
   };
+  imageQuality: "good" | "degraded" | "poor";
+  imageQualityNotes: string[];
   processingMs: number;
   sessionId: string;
 }
