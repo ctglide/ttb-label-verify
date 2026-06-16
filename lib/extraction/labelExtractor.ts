@@ -12,7 +12,7 @@ import type { ExtractedLabelData, BeverageType } from "../../types/label";
 
 const EXTRACTION_SYSTEM_PROMPT = `You are a TTB (Alcohol and Tobacco Tax and Trade Bureau) label data extraction assistant.
 Your sole job is to read an alcohol beverage label image and extract specific regulated fields.
-Return ONLY a valid JSON object. No preamble, no explanation, no markdown fences.
+For countryOfOrigin: if the label shows no explicit country but the producer address contains a US state name or abbreviation (e.g. "Kentucky", "KY", "Tennessee", "TX"), set value to "USA" with high confidence and note "Inferred from US address".\n\nReturn ONLY a valid JSON object. No preamble, no explanation, no markdown fences.
 
 For each field, extract the value exactly as it appears and rate your confidence:
 - "high": text is clear, unambiguous, fully readable

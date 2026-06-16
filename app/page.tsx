@@ -115,6 +115,15 @@ export default function Home() {
       reader.readAsDataURL(file);
     });
 
+  const inferCountryOfOrigin = (address: string | null, extracted: string | null): string => {
+    if (extracted) return extracted;
+    if (!address) return "";
+    // Infer USA from US state names or abbreviations in address
+    const usStatePattern = /\b(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming|AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b/i;
+    if (usStatePattern.test(address)) return "USA";
+    return "";
+  };
+
   const mergeIntoForm = useCallback((front: ExtractedLabelData, back?: ExtractedLabelData) => {
     const pick = (fVal: { value: string | null; confidence: string } | null, bVal: { value: string | null; confidence: string } | null) => {
       if (!bVal?.value) return fVal?.value ?? "";
@@ -135,7 +144,10 @@ export default function Home() {
       netContents: pick(f.netContents, b?.netContents ?? null),
       producerName: pick(f.producerName, b?.producerName ?? null),
       producerAddress: pick(f.producerAddress, b?.producerAddress ?? null),
-      countryOfOrigin: pick(f.countryOfOrigin, b?.countryOfOrigin ?? null),
+      countryOfOrigin: inferCountryOfOrigin(
+        pick(f.producerAddress, b?.producerAddress ?? null),
+        pick(f.countryOfOrigin, b?.countryOfOrigin ?? null)
+      ),
     }));
 
     // Merge for confidence display — gov warning from back
@@ -199,6 +211,7 @@ export default function Home() {
           applicationData: appData,
           imageBase64: frontSlot.base64,
           imageMimeType: frontSlot.mimeType,
+          extractedData: extracted, // send confirmed extraction — no second vision call
         }),
       });
       const data = await res.json();

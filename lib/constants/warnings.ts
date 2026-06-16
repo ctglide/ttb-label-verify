@@ -43,11 +43,12 @@ export const COO_REQUIRED_THRESHOLD_ML = 50;
  * Proof statements are optional for distilled spirits and not used for wine/malt.
  */
 export const ABV_PATTERN =
-  /(\d+(?:\.\d+)?)\s*%\s*(?:alc\.?\s*(?:\/\s*vol\.?|by\s+vol\.?)|alcohol\s+by\s+volume)/i;
+  /(\d+(?:\.\d+)?)\s*%\s*(?:alc\.?\s*(?:\/\s*vol\.?|by\s+vol\.?)|alc\s+by\s+vol\.?|alcohol\s+by\s+volume)/i;
 
 export const ABV_PROHIBITED_ABBREVIATION = /(\d+(?:\.\d+)?)\s*%\s*abv\b/i;
 
-export const PROOF_PATTERN = /\((\d+(?:\.\d+)?)\s*proof\)/i;
+// Matches proof in parens OR after a pipe: "(107 PROOF)" or "| 107 PROOF"
+export const PROOF_PATTERN = /(?:\|\s*|[\(\s])(\d+(?:\.\d+)?)\s*proof[\)\s]?/i;
 
 /**
  * ABV tolerances by beverage type and alcohol level (CFR-sourced).

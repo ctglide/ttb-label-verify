@@ -79,4 +79,6 @@ export interface VerifyRequest {
   applicationData: ApplicationData;
   imageBase64: string;
   imageMimeType: string;
+  /** Pre-confirmed extracted data from the extract step. If provided, verify skips re-extraction. */
+  extractedData?: ExtractedLabelData;
 }

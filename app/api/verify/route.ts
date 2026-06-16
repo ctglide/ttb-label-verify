@@ -42,32 +42,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // --- Input validation ---
-  const { applicationData, imageBase64, imageMimeType } = body;
-
-  if (!imageBase64 || typeof imageBase64 !== "string") {
-    return NextResponse.json(
-      { error: "imageBase64 is required." },
-      { status: 400 }
-    );
-  }
-
-  if (!imageMimeType || !ALLOWED_MIME_TYPES.has(imageMimeType)) {
-    return NextResponse.json(
-      {
-        error: `Unsupported image type. Accepted: ${[...ALLOWED_MIME_TYPES].join(", ")}.`,
-      },
-      { status: 400 }
-    );
-  }
-
-  // Rough size check on base64 string
-  const estimatedBytes = (imageBase64.length * 3) / 4;
-  if (estimatedBytes > MAX_IMAGE_BYTES) {
-    return NextResponse.json(
-      { error: "Image exceeds 5MB limit. Please upload a smaller file." },
-      { status: 413 }
-    );
-  }
+  const { applicationData, imageBase64, imageMimeType, extractedData } = body;
 
   if (!applicationData || typeof applicationData !== "object") {
     return NextResponse.json(
@@ -83,23 +58,50 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // --- Extraction ---
+  // --- Extraction (skipped if pre-confirmed extractedData is provided) ---
   let extracted;
-  try {
-    extracted = await extractLabelFields(
-      imageBase64,
-      imageMimeType,
-      applicationData.beverageType ?? "distilled_spirits"
-    );
-  } catch (err) {
-    console.error(`[${sessionId}] Extraction error:`, err);
-    return NextResponse.json(
-      {
-        error:
-          "Label extraction failed. Check image quality and try again.",
-      },
-      { status: 502 }
-    );
+  if (extractedData) {
+    // Use agent-confirmed extracted data — no second vision call
+    extracted = extractedData;
+  } else {
+    // Fallback: re-extract from image (requires imageBase64 + imageMimeType)
+    if (!imageBase64 || typeof imageBase64 !== "string") {
+      return NextResponse.json(
+        { error: "imageBase64 is required when extractedData is not provided." },
+        { status: 400 }
+      );
+    }
+
+    if (!imageMimeType || !ALLOWED_MIME_TYPES.has(imageMimeType)) {
+      return NextResponse.json(
+        {
+          error: `Unsupported image type. Accepted: ${[...ALLOWED_MIME_TYPES].join(", ")}.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const estimatedBytes = (imageBase64.length * 3) / 4;
+    if (estimatedBytes > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { error: "Image exceeds 5MB limit. Please upload a smaller file." },
+        { status: 413 }
+      );
+    }
+
+    try {
+      extracted = await extractLabelFields(
+        imageBase64,
+        imageMimeType,
+        applicationData.beverageType ?? "distilled_spirits"
+      );
+    } catch (err) {
+      console.error(`[${sessionId}] Extraction error:`, err);
+      return NextResponse.json(
+        { error: "Label extraction failed. Check image quality and try again." },
+        { status: 502 }
+      );
+    }
   }
 
   const processingMs = Date.now() - startMs;
