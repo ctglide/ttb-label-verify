@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import VerificationResultDisplay from "@/components/VerificationResult";
 import BatchUpload from "@/components/BatchUpload";
-import type { ApplicationData, VerificationResult, ExtractedLabelData } from "@/types/label";
+import type { ApplicationData, VerificationResult, ExtractedLabelData, ExtractedField, FieldConfidence } from "@/types/label";
 
 const BLANK_APP_DATA: ApplicationData = {
   brandName: "", classType: "", alcoholContent: "", netContents: "",
@@ -150,9 +150,26 @@ export default function Home() {
       ),
     }));
 
-    // Merge for confidence display — gov warning from back
+    // Merge extracted state — pick best confidence per field from front+back
+    // so confidence dots reflect what was actually used to populate the form.
+    const pickField = (
+      fField: ExtractedField | null | undefined,
+      bField: ExtractedField | null | undefined
+    ): ExtractedField => {
+      if (!bField?.value) return fField ?? { value: null, confidence: "low" as FieldConfidence, confidenceNote: null };
+      if (!fField?.value) return bField;
+      const order: Record<FieldConfidence, number> = { high: 0, medium: 1, low: 2 };
+      return (order[fField.confidence] ?? 2) <= (order[bField.confidence] ?? 2) ? fField : bField;
+    };
+
     setExtracted({
-      ...f,
+      brandName: pickField(f.brandName, b?.brandName),
+      classType: pickField(f.classType, b?.classType),
+      alcoholContent: pickField(f.alcoholContent, b?.alcoholContent),
+      netContents: pickField(f.netContents, b?.netContents),
+      producerName: pickField(f.producerName, b?.producerName),
+      producerAddress: pickField(f.producerAddress, b?.producerAddress),
+      countryOfOrigin: pickField(f.countryOfOrigin, b?.countryOfOrigin),
       governmentWarning: b?.governmentWarning?.value ? b.governmentWarning : f.governmentWarning,
       imageQuality: f.imageQuality === "poor" || b?.imageQuality === "poor" ? "poor"
         : f.imageQuality === "degraded" || b?.imageQuality === "degraded" ? "degraded" : "good",

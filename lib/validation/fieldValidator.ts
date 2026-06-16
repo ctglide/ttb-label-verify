@@ -54,13 +54,18 @@ function compareField(
   const extNorm = normalizeForComparison(extractedValue);
 
   if (appNorm === extNorm) {
-    if (applicationValue.trim() !== extractedValue.trim()) {
+    // TTB does not restrict body text casing — all-caps label text is acceptable.
+    // Only flag spacing differences, not casing differences.
+    const appTrimmedLower = applicationValue.trim().toLowerCase();
+    const extTrimmedLower = extractedValue.trim().toLowerCase();
+    if (appTrimmedLower === extTrimmedLower && applicationValue.trim() !== extractedValue.trim()) {
+      // Same content, only spacing differs
       return {
         status: "warning",
-        note: `Values match when normalized but differ in casing or spacing. Application: "${applicationValue}" / Label: "${extractedValue}". Agent review recommended.`,
+        note: `Values match but spacing differs. Application: "${applicationValue}" / Label: "${extractedValue}". Agent review recommended.`,
       };
     }
-    return { status: "pass", note: "Exact match." };
+    return { status: "pass", note: "Match (casing-insensitive — TTB permits all-caps label text)." };
   }
 
   return {
@@ -226,12 +231,14 @@ export function validateGovernmentWarning(extractedField: ExtractedField | null)
   }
 
   if (extractedNorm.toLowerCase() === expectedNorm.toLowerCase()) {
+    // TTB does not restrict body text casing — all-caps or mixed-case body is acceptable.
+    // The prefix "GOVERNMENT WARNING:" is already verified above to be in correct caps.
     return {
-      status: "fail",
+      status: "pass",
       extracted,
       confidence,
       confidenceNote,
-      note: "Government warning text matches but casing differs from required statement. Must be exact per 27 CFR 16.21.",
+      note: "Government warning text matches required statement. All-caps body text is permitted by TTB.",
     };
   }
 
