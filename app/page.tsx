@@ -268,10 +268,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.png" alt="TTB Label Verification Tool" className="w-10 h-10 rounded-xl object-contain" />
+            <img src="/icon.png" alt="TTB TTB Verify" className="w-10 h-10 rounded-xl object-contain" />
             <div>
               <p className="text-xs text-slate-500 font-medium">TTB / Compliance Division</p>
-              <p className="text-sm font-semibold text-slate-800 leading-tight">Label Verification Tool</p>
+              <p className="text-sm font-semibold text-slate-800 leading-tight">TTB Verify</p>
             </div>
           </div>
           <div className="text-xs text-slate-400 hidden sm:block">Prototype — not for production use</div>
@@ -437,7 +437,7 @@ export default function Home() {
 
       <footer className="mt-12 border-t border-slate-200 py-4">
         <p className="text-center text-xs text-slate-400">
-          TTB Label Verification Prototype · Images processed in-memory only, not stored ·{" "}
+          TTB Verify · Images processed in-memory only, not stored ·{" "}
           <a href="https://www.ttb.gov" className="underline hover:text-slate-600" target="_blank" rel="noopener noreferrer">ttb.gov</a>
         </p>
       </footer>

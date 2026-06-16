@@ -1,6 +1,10 @@
-# TTB Label Verification Tool
+<p align="center">
+  <img src="public/ttb-verify-badge.png" alt="TTB Verify" width="200" />
+</p>
 
-An AI-assisted label verification tool for the Alcohol and Tobacco Tax and Trade Bureau (TTB) Compliance Division. This tool helps compliance agents check whether an alcohol beverage label matches the information submitted in a Certificate of Label Approval (COLA) application — and whether the label meets TTB's mandatory regulatory requirements.
+# TTB Verify
+
+An AI-assisted label verification tool for the Alcohol and Tobacco Tax and Trade Bureau (TTB) Compliance Division. TTB Verify helps compliance agents check whether an alcohol beverage label matches the information submitted in a Certificate of Label Approval (COLA) application — and whether the label meets TTB's mandatory regulatory requirements.
 
 ---
 
