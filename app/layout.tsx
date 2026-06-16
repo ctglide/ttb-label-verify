@@ -4,6 +4,15 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "TTB Label Verification Tool",
   description: "AI-powered alcohol beverage label verification for TTB Compliance Division",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.png", type: "image/png", sizes: "500x500" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "500x500", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
