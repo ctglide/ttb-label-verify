@@ -241,7 +241,35 @@ function FieldRow({
 
 export default function VerificationResultDisplay({ result: initialResult, applicationData }: VerificationResultProps) {
   const [result, setResult] = useState(initialResult);
-  const overall = OVERALL_STYLES[result.overallStatus];
+  const [finalized, setFinalized] = useState(false);
+  const [finalDecision, setFinalDecision] = useState<"approved" | "rejected" | null>(null);
+
+  // Recompute overall status dynamically based on current agent overrides
+  const effectiveOverallStatus = (() => {
+    if (finalized && finalDecision) return finalDecision;
+
+    const hasFail = result.fields.some((f) => {
+      const s = f.agentOverride ? (f.agentOverride.decision === "accepted" ? "pass" : "fail") : f.status;
+      return s === "fail";
+    }) || (
+      result.governmentWarningResult.agentOverride
+        ? result.governmentWarningResult.agentOverride.decision === "rejected"
+        : result.governmentWarningResult.status === "fail"
+    );
+
+    const hasWarning = !hasFail && (
+      result.fields.some((f) => {
+        if (f.agentOverride) return false; // agent reviewed — no longer a warning
+        return f.status === "warning";
+      }) ||
+      (result.governmentWarningResult.status === "warning" && !result.governmentWarningResult.agentOverride) ||
+      (result.imageQuality !== "good" && result.fields.some((f) => !f.agentOverride && (f.status === "fail" || f.status === "warning")))
+    );
+
+    return hasFail ? "rejected" : hasWarning ? "needs_review" : "approved";
+  })();
+
+  const overall = OVERALL_STYLES[effectiveOverallStatus];
 
   const handleFieldOverride = (fieldKey: string, decision: "accepted" | "rejected", reason: string) => {
     setResult((prev) => ({
@@ -320,6 +348,12 @@ export default function VerificationResultDisplay({ result: initialResult, appli
   const [warningOverrideReason, setWarningOverrideReason] = useState("");
   const [warningDecision, setWarningDecision] = useState<"accepted" | "rejected" | null>(null);
 
+  const pendingReviewCount = result.fields.filter(
+    (f) => (f.status === "fail" || f.status === "warning") && !f.agentOverride
+  ).length + (
+    result.governmentWarningResult.status !== "pass" && !result.governmentWarningResult.agentOverride ? 1 : 0
+  );
+
   return (
     <div className="space-y-5">
       {/* Overall status banner */}
@@ -329,10 +363,36 @@ export default function VerificationResultDisplay({ result: initialResult, appli
             <p className="text-xs font-semibold tracking-widest opacity-80 mb-1">VERIFICATION RESULT</p>
             <p className="text-2xl font-bold">{overall.label}</p>
             <p className="text-sm opacity-90 mt-1">{overall.description}</p>
+            {effectiveOverallStatus === "needs_review" && pendingReviewCount > 0 && (
+              <p className="text-xs opacity-75 mt-1">{pendingReviewCount} field{pendingReviewCount !== 1 ? "s" : ""} pending agent review</p>
+            )}
           </div>
-          <div className="text-right text-xs opacity-70 space-y-1">
-            <p>Session: {result.sessionId.slice(0, 8).toUpperCase()}</p>
-            <p>Processed in {result.processingMs}ms</p>
+          <div className="text-right space-y-2">
+            <div className="text-xs opacity-70 space-y-1">
+              <p>Session: {result.sessionId.slice(0, 8).toUpperCase()}</p>
+              <p>Processed in {result.processingMs}ms</p>
+            </div>
+            {!finalized && pendingReviewCount === 0 && (
+              <div className="flex flex-col gap-1.5">
+                <button
+                  onClick={() => { setFinalDecision("approved"); setFinalized(true); }}
+                  className="text-xs font-bold px-3 py-1.5 rounded bg-white text-emerald-700 hover:bg-emerald-50"
+                >
+                  ✓ Finalize: Approve
+                </button>
+                <button
+                  onClick={() => { setFinalDecision("rejected"); setFinalized(true); }}
+                  className="text-xs font-bold px-3 py-1.5 rounded bg-white/20 border border-white/40 text-white hover:bg-white/30"
+                >
+                  ✗ Finalize: Reject
+                </button>
+              </div>
+            )}
+            {finalized && (
+              <div className="text-xs font-bold bg-white/20 rounded px-3 py-1.5 border border-white/40">
+                Decision recorded: {finalDecision === "approved" ? "APPROVED" : "REJECTED"}
+              </div>
+            )}
           </div>
         </div>
       </div>
