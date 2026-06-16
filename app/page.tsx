@@ -101,6 +101,7 @@ export default function Home() {
   const [extractionError, setExtractionError] = useState<string | null>(null);
   const [appData, setAppData] = useState<ApplicationData>(BLANK_APP_DATA);
   const [verifyState, setVerifyState] = useState<VerifyState>("idle");
+  const [agentConfirmed, setAgentConfirmed] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
 
@@ -186,7 +187,7 @@ export default function Home() {
   }, [frontSlot, appData.beverageType, runExtraction]);
 
   const handleVerify = async () => {
-    if (!frontSlot || extractionState !== "extracted") return;
+    if (!extracted || extractionState !== "extracted" || !agentConfirmed) return;
     setVerifyState("verifying");
     setVerifyError(null);
     setResult(null);
@@ -197,8 +198,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           applicationData: appData,
-          imageBase64: frontSlot.base64,
-          imageMimeType: frontSlot.mimeType,
+          extractedData: extracted,
         }),
       });
       const data = await res.json();
@@ -216,6 +216,7 @@ export default function Home() {
     setExtracted(null); setExtractionState("idle"); setExtractionError(null);
     setAppData(BLANK_APP_DATA);
     setResult(null); setVerifyState("idle"); setVerifyError(null);
+    setAgentConfirmed(false);
   };
 
   const getFieldConfidence = (key: keyof ApplicationData) => {
@@ -385,11 +386,27 @@ export default function Home() {
                 })}
               </div>
 
-              <div className="pt-2 border-t border-slate-200">
-                {verifyError && <p className="text-sm text-red-600 mb-2">⚠ {verifyError}</p>}
+              <div className="pt-2 border-t border-slate-200 space-y-3">
+                {verifyError && <p className="text-sm text-red-600">⚠ {verifyError}</p>}
+
+                {/* Step 1: Agent sign-off */}
+                {extractionState === "extracted" && verifyState !== "verifying" && (
+                  <label className="flex items-start gap-2.5 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={agentConfirmed}
+                      onChange={(e) => setAgentConfirmed(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-400"
+                    />
+                    <span className="text-sm text-slate-600 group-hover:text-slate-800">
+                      I have reviewed the extracted fields above and confirm they accurately reflect the label.
+                    </span>
+                  </label>
+                )}
+
                 <button
                   onClick={handleVerify}
-                  disabled={extractionState !== "extracted" || verifyState === "verifying"}
+                  disabled={extractionState !== "extracted" || !agentConfirmed || verifyState === "verifying"}
                   className="w-full px-6 py-3 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 active:bg-indigo-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {verifyState === "verifying" ? (
@@ -400,7 +417,7 @@ export default function Home() {
                       </svg>
                       Verifying…
                     </>
-                  ) : "Verify Label"}
+                  ) : "Confirm & Verify Label"}
                 </button>
               </div>
             </div>

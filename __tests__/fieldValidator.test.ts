@@ -272,9 +272,12 @@ describe("ABV — malt beverage", () => {
 // ---------------------------------------------------------------------------
 
 describe("Optional fields", () => {
-  test("skips country of origin when not in application", () => {
+  test("passes country of origin as domestic when address implies USA and COO is blank", () => {
+    // BASE_APP_DATA has producerAddress "Louisville, KY 40202" — inferred domestic
     const result = runVerification(BASE_APP_DATA, BASE_EXTRACTED, 1200, "s1");
-    expect(result.fields.find((f) => f.field === "countryOfOrigin")).toBeUndefined();
+    const f = result.fields.find((r) => r.field === "countryOfOrigin");
+    expect(f?.status).toBe("pass");
+    expect(f?.note).toMatch(/domestic/i);
   });
 
   test("checks country of origin when provided", () => {

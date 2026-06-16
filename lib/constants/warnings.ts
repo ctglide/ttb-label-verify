@@ -43,11 +43,21 @@ export const COO_REQUIRED_THRESHOLD_ML = 50;
  * Proof statements are optional for distilled spirits and not used for wine/malt.
  */
 export const ABV_PATTERN =
-  /(\d+(?:\.\d+)?)\s*%\s*(?:alc\.?\s*(?:\/\s*vol\.?|by\s+vol\.?)|alcohol\s+by\s+volume)/i;
+  /(\d+(?:\.\d+)?)\s*%\s*(?:alc\.?\s*(?:\/\s*vol\.?|by\s+vol(?:ume)?\.?)|alcohol\s+by\s+volume)/i;
 
 export const ABV_PROHIBITED_ABBREVIATION = /(\d+(?:\.\d+)?)\s*%\s*abv\b/i;
 
-export const PROOF_PATTERN = /\((\d+(?:\.\d+)?)\s*proof\)/i;
+// Matches both "(107 proof)" and "107 proof" (without parens, common on pipe-formatted labels)
+export const PROOF_PATTERN = /\(?(\d+(?:\.\d+)?)\s*proof\)?/i;
+
+/**
+ * US state abbreviations used to infer domestic origin from producer address.
+ * Domestic products do not require a country of origin statement (27 CFR 5.36).
+ */
+export const US_STATE_ABBREV_PATTERN =
+  /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b/;
+
+export const US_ZIP_PATTERN = /\b\d{5}(?:-\d{4})?\b/;
 
 /**
  * ABV tolerances by beverage type and alcohol level (CFR-sourced).

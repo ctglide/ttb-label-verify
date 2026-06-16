@@ -20,6 +20,8 @@ import {
   WINE_MANDATORY_ABV_THRESHOLD,
   WINE_TTB_JURISDICTION_MINIMUM,
   MALT_BEVERAGE_ABV_MANDATORY_NOTE,
+  US_STATE_ABBREV_PATTERN,
+  US_ZIP_PATTERN,
 } from "../constants/warnings";
 import type {
   ApplicationData,
@@ -67,6 +69,14 @@ function compareField(
     status: "fail",
     note: `Mismatch. Application states "${applicationValue}" — label shows "${extractedValue}".`,
   };
+}
+
+// ---------------------------------------------------------------------------
+// US address inference — domestic products don't require COO (27 CFR 5.36)
+// ---------------------------------------------------------------------------
+
+function looksLikeUSAddress(address: string): boolean {
+  return US_STATE_ABBREV_PATTERN.test(address) || US_ZIP_PATTERN.test(address);
 }
 
 // ---------------------------------------------------------------------------
@@ -277,8 +287,29 @@ export function runVerification(
     "countryOfOrigin",
   ];
 
+  const addressValue = applicationData.producerAddress?.trim() ?? "";
+  const inferredDomestic = looksLikeUSAddress(addressValue);
+
   for (const key of fieldKeys) {
     const appVal = applicationData[key] as string;
+
+    // COO: if blank, infer domestic when address looks US; skip silently
+    if (key === "countryOfOrigin" && (!appVal || appVal.trim() === "")) {
+      if (inferredDomestic) {
+        fieldResults.push({
+          field: key,
+          label: FIELD_LABELS[key] ?? key,
+          applicationValue: "",
+          extractedValue: null,
+          confidence: "high",
+          confidenceNote: null,
+          status: "pass",
+          note: "Country of origin not stated — producer address appears domestic (USA). COO statement not required for domestic products per 27 CFR 5.36.",
+        });
+      }
+      continue;
+    }
+
     if (!appVal || appVal.trim() === "") continue;
 
     const extractedField = extracted[key as keyof ExtractedLabelData] as ExtractedField;

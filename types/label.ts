@@ -77,6 +77,8 @@ export interface VerificationResult {
 
 export interface VerifyRequest {
   applicationData: ApplicationData;
-  imageBase64: string;
-  imageMimeType: string;
+  // Either provide pre-extracted data (skips re-extraction) or raw image
+  extractedData?: ExtractedLabelData;
+  imageBase64?: string;
+  imageMimeType?: string;
 }
