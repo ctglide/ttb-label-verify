@@ -267,11 +267,8 @@ export default function Home() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon.png" alt="TTB Label Verification Tool" className="w-10 h-10 rounded-xl object-contain" />
             <div>
               <p className="text-xs text-slate-500 font-medium">TTB / Compliance Division</p>
               <p className="text-sm font-semibold text-slate-800 leading-tight">Label Verification Tool</p>
