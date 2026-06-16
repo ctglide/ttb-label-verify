@@ -215,33 +215,43 @@ export function validateGovernmentWarning(extractedField: ExtractedField | null)
   const { value: extracted, confidence, confidenceNote } = extractedField;
   const trimmed = extracted.trim().replace(/\s+/g, " ");
 
-  if (!trimmed.startsWith(GOVERNMENT_WARNING_PREFIX)) {
-    const lowerStart = trimmed.toLowerCase().startsWith("government warning:");
+  if (!trimmed.toUpperCase().startsWith(GOVERNMENT_WARNING_PREFIX)) {
     return {
       status: "fail",
       extracted,
       confidence,
       confidenceNote,
-      note: lowerStart
-        ? `"GOVERNMENT WARNING:" prefix must appear in all caps and bold per 27 CFR 16.21. Label shows incorrect casing.`
-        : `Government warning does not begin with required "GOVERNMENT WARNING:" prefix.`,
+      note: `Government warning does not begin with required "GOVERNMENT WARNING:" prefix.`,
+    };
+  }
+
+  // Prefix must appear in all caps per 27 CFR 16.21
+  if (!trimmed.startsWith(GOVERNMENT_WARNING_PREFIX)) {
+    return {
+      status: "fail",
+      extracted,
+      confidence,
+      confidenceNote,
+      note: `"GOVERNMENT WARNING:" prefix must appear in all caps and bold per 27 CFR 16.21. Label shows incorrect casing.`,
     };
   }
 
   const expectedNorm = GOVERNMENT_WARNING_TEXT.replace(/\s+/g, " ").trim();
   const extractedNorm = trimmed.replace(/\s+/g, " ");
 
+  // Exact match
   if (extractedNorm === expectedNorm) {
     return { status: "pass", extracted, confidence, confidenceNote, note: "Government warning matches required text exactly." };
   }
 
-  if (extractedNorm.toLowerCase() === expectedNorm.toLowerCase()) {
+  // TTB does not restrict the body from being fully uppercase — accept it
+  if (extractedNorm.toUpperCase() === expectedNorm.toUpperCase()) {
     return {
-      status: "fail",
+      status: "pass",
       extracted,
       confidence,
       confidenceNote,
-      note: "Government warning text matches but casing differs from required statement. Must be exact per 27 CFR 16.21.",
+      note: "Government warning text matches required statement (uppercase body accepted per TTB labeling practice).",
     };
   }
 

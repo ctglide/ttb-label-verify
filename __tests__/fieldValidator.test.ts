@@ -64,8 +64,14 @@ describe("validateGovernmentWarning", () => {
     expect(result.note).toMatch(/all caps/i);
   });
 
-  test("fails when body text is altered", () => {
-    const altered = GOVERNMENT_WARNING_TEXT.replace("Surgeon General", "surgeon general");
+  test("passes when entire text is all uppercase (TTB allows uppercase body)", () => {
+    const allUpper = GOVERNMENT_WARNING_TEXT.toUpperCase();
+    const result = validateGovernmentWarning(field(allUpper));
+    expect(result.status).toBe("pass");
+  });
+
+  test("fails when body text is substantively altered", () => {
+    const altered = GOVERNMENT_WARNING_TEXT.replace("birth defects", "health risks");
     expect(validateGovernmentWarning(field(altered)).status).toBe("fail");
   });
 
