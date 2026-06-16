@@ -1,286 +1,246 @@
 # TTB Label Verification Tool
 
-AI-powered alcohol beverage label verification prototype for the TTB Compliance Division.
-
-## What it does
-
-Agents upload front and back label images. The tool extracts regulated fields from the label using Claude Vision, compares them against the COLA application data, and returns a structured pass/fail/review result per field — including strict government warning statement validation per 27 CFR 16.21.
-
-Agents can review extracted fields before verification runs, record override decisions on flagged fields, and finalize an approval or rejection once all fields have been reviewed.
+An AI-assisted label verification tool for the Alcohol and Tobacco Tax and Trade Bureau (TTB) Compliance Division. This tool helps compliance agents check whether an alcohol beverage label matches the information submitted in a Certificate of Label Approval (COLA) application — and whether the label meets TTB's mandatory regulatory requirements.
 
 ---
 
-## Setup
+## Background
+
+### What is TTB?
+
+The Alcohol and Tobacco Tax and Trade Bureau (TTB) is a bureau of the U.S. Department of the Treasury. TTB is responsible for enforcing federal laws covering the production, importation, wholesale distribution, and labeling of alcohol beverages sold in the United States. Its mission includes protecting consumers by ensuring that alcohol beverage labels are accurate, truthful, and compliant with federal regulations.
+
+### What is a COLA?
+
+Before an alcohol beverage can be sold in the United States, the producer or importer must obtain a **Certificate of Label Approval (COLA)** from TTB. A COLA certifies that the label on a product has been reviewed and approved as compliant with federal labeling requirements under the Federal Alcohol Administration Act (FAA Act).
+
+Producers submit COLA applications through TTB's online system (COLAs Online) containing product information such as brand name, class and type, alcohol content, net contents, producer name and address, and country of origin. TTB compliance agents then review the physical label to verify that what appears on the bottle matches what was submitted in the application.
+
+### What regulations govern alcohol beverage labels?
+
+TTB's labeling regulations are codified in the Code of Federal Regulations (CFR):
+
+- **27 CFR Part 4** — Wine labeling
+- **27 CFR Part 5** — Distilled spirits labeling
+- **27 CFR Part 7** — Malt beverage labeling
+- **27 CFR Part 16** — Mandatory government warning statement
+
+These regulations specify which fields must appear on a label, what format they must take, and what language is required. For example, every alcohol beverage containing 0.5% or more alcohol by volume must carry the exact government warning statement specified in 27 CFR Part 16, Section 16.21.
+
+### Why this tool?
+
+Manually comparing label images against COLA application data is time-consuming and error-prone. This tool uses AI vision to read a label photograph, extract the regulated fields, and automatically compare them against the application — flagging mismatches, formatting issues, and missing required elements for agent review. It does not replace agent judgment; it surfaces discrepancies and lets agents record and finalize their decisions.
+
+---
+
+## How to Use the Tool
+
+### Accessing the tool
+
+Open the tool in your web browser. No login is required for the prototype. The tool works on desktop and mobile.
+
+---
+
+### Verifying a Single Label
+
+This is the primary workflow for reviewing an individual COLA application.
+
+**Step 1 — Select beverage type**
+
+At the top of the page, select the beverage type: **Distilled Spirits**, **Wine**, or **Malt Beverage / Beer**. This determines which regulatory rules apply during verification.
+
+**Step 2 — Upload the front label**
+
+Click or drag a photo of the front label into the **Front Label** upload area. Accepted formats: JPEG, PNG, WebP. Maximum file size: 5 MB.
+
+As soon as the image is uploaded, the tool reads the label using AI and automatically populates the **Extracted Fields** form below with values found on the label. This typically takes 2–4 seconds.
+
+> **Image quality tips:** Use a well-lit, straight-on photo with no glare. Avoid extreme angles. If the tool flags image quality issues, those will appear in a yellow warning banner — review any fields marked "verify carefully" manually.
+
+**Step 3 — Upload the back label (recommended)**
+
+Click or drag a photo of the back label into the **Back Label** upload area. The back label typically contains the government warning statement, producer address, and net contents. Uploading both labels gives the tool more to work with and improves extraction accuracy.
+
+After uploading the back label, the fields will update automatically, merging the best-confidence values from both images.
+
+**Step 4 — Review and correct extracted fields**
+
+Before verifying, review each field in the **Extracted Fields** section. The colored dot next to each field label indicates the AI's confidence in that extraction:
+
+- 🟢 **Green** — High confidence. Value is clearly readable.
+- 🟡 **Amber** — Medium confidence. Value is readable but may be stylized, small, or partially obscured. Verify manually.
+- 🔴 **Red** — Low confidence. Value is difficult to read. Verify carefully before proceeding.
+
+If a field value is wrong, click into the field and correct it. The tool will use whatever values are in the form when you hit Verify — so what you see is what gets checked.
+
+**Country of Origin** is inferred automatically as **USA** if the producer address contains a U.S. state name or abbreviation (e.g., "Frankfort, Kentucky"). Correct this if the product is imported.
+
+**Step 5 — Verify the label**
+
+Click **Verify Label**. The tool compares each field against the COLA application data and checks the government warning statement against the required statutory text.
+
+Results appear immediately with an overall status:
+
+- ✅ **Approved** — All fields match the application and meet regulatory requirements.
+- ⚠️ **Needs Review** — One or more fields have discrepancies or low-confidence reads that require agent review.
+- ❌ **Rejected** — One or more fields do not match the application or fail a regulatory requirement.
+
+**Step 6 — Review field results**
+
+Each field shows:
+
+- **Application value** — what was submitted in the COLA application
+- **Label value** — what the tool read from the label
+- **Status badge** — Pass, Fail, or Review
+- **Note** — explanation of the result
+
+Fields that fail or need review include an **agent decision** section. Click **Record agent decision**, select **Accept** or **Reject**, enter a reason, and click **Save decision**. The overall status updates automatically as you work through each flagged field.
+
+> **Note on casing:** TTB regulations do not restrict whether label body text appears in uppercase or mixed case. A label reading "KENTUCKY STRAIGHT BOURBON WHISKEY" will match an application reading "Kentucky Straight Bourbon Whiskey." The tool handles this automatically.
+
+**Step 7 — Finalize**
+
+Once all flagged fields have an agent decision recorded, **Finalize: Approve** and **Finalize: Reject** buttons appear in the status banner. Click the appropriate button to lock in the final decision.
+
+To start over with a new label, click **← Verify another label** at the top of the results page.
+
+---
+
+### Batch Verification
+
+The **Batch** tab allows multiple labels to be uploaded and verified at once — useful for processing a queue of COLA applications.
+
+**Step 1 — Switch to the Batch tab**
+
+Click **Batch** at the top of the page.
+
+**Step 2 — Upload label images**
+
+Upload multiple label image files at once by clicking the upload area or dragging files in. Each file should be named or organized so you can match results back to the correct application.
+
+**Step 3 — Review results**
+
+The tool processes labels in parallel and displays results as they complete. Each label shows its overall status. Labels that fail or return errors are called out clearly so they can be prioritized for manual review.
+
+> **Batch limit:** Up to 300 labels per batch.
+
+---
+
+## Understanding Verification Results
+
+### Field statuses
+
+| Status | Meaning |
+|---|---|
+| **Pass** | Field on label matches the application value. |
+| **Fail** | Field does not match, is missing, or fails a regulatory requirement. |
+| **Review** | Values are close but differ in spacing, or the AI confidence is low. Agent should confirm manually. |
+| **Not Checked** | Field was not validated (e.g., ABV on a wine labeled "Table Wine" under 14% is optional). |
+
+### Government warning statement
+
+The government warning statement is validated against the exact statutory text required by 27 CFR Part 16, Section 16.21. The full required text is:
+
+> GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.
+
+The prefix **GOVERNMENT WARNING:** must appear in all caps. The body text may appear in all caps or mixed case — both are permitted. The tool validates the text content; agents should visually confirm that "GOVERNMENT WARNING:" appears in bold on the physical label, as required by regulation.
+
+### Confidence indicators
+
+The colored dots and confidence labels reflect how clearly the AI was able to read each field from the image — not whether the field passes or fails. A high-confidence fail means the tool clearly read a value that doesn't match. A low-confidence pass means the value matched but the image was difficult to read and manual confirmation is recommended.
+
+### Image quality warnings
+
+If the tool detects degraded image quality (glare, angle, curvature, shadows), a yellow warning banner appears listing the specific issues. Fields affected by image quality are flagged for manual verification. Submitting a clearer photo will improve extraction accuracy.
+
+---
+
+## Regulatory Reference
+
+### Fields validated
+
+| Field | Regulation |
+|---|---|
+| Brand Name | 27 CFR 5.32, 4.32, 7.22 |
+| Class / Type | 27 CFR 5.35, 4.34, 7.24 |
+| Alcohol Content (ABV) | 27 CFR 5.32(d), 4.36, 7.65 |
+| Net Contents | 27 CFR 5.38, 4.37, 7.70 |
+| Producer / Bottler Name | 27 CFR 5.36, 4.35, 7.26 |
+| Producer / Bottler Address | 27 CFR 5.36, 4.35, 7.26 |
+| Country of Origin | 27 CFR 5.36(a) (imports) |
+| Government Warning Statement | 27 CFR Part 16, §16.21 |
+
+### ABV tolerances
+
+The tool allows the following tolerances when comparing stated ABV against the label:
+
+- Distilled spirits: ±0.3% (27 CFR 5.65)
+- Malt beverages: ±0.3% (27 CFR 7.65)
+- Wine under 14% ABV: ±1.5% (27 CFR 4.36)
+- Wine over 14% ABV: ±1.0% (27 CFR 4.36)
+
+Values within tolerance are flagged for review rather than automatic rejection.
+
+### Wine ABV exceptions
+
+- Wine under 7% ABV is outside TTB jurisdiction (regulated by FDA). The tool skips ABV validation and flags it for agent awareness.
+- Wine between 7–14% ABV labeled "Table Wine" or "Light Wine": ABV statement is optional per 27 CFR 4.36(a).
+- Wine over 14% ABV: ABV statement is mandatory.
+
+### Allergen labeling
+
+TTB published proposed rulemaking in January 2025 (Notice No. 232) that would require allergen disclosures on alcohol beverage labels. As of April 2026, this rule has **not been finalized**. The tool does not currently enforce allergen labeling. Monitor [ttb.gov](https://www.ttb.gov) for updates.
+
+---
+
+## Security and Privacy
+
+No label images or application data are stored by this tool. All processing happens in memory and is discarded when the session ends. Images are transmitted securely to Anthropic's AI service for reading and are not retained. No personally identifiable information is logged.
+
+This is a prototype. A production deployment for federal use would require FedRAMP-authorized hosting, a formal Authority to Operate (ATO), role-based access controls, and integration with TTB's audit logging infrastructure.
+
+---
+
+## Technical Setup (for developers)
 
 ### Prerequisites
 
 - Node.js 18+
 - An Anthropic API key ([console.anthropic.com](https://console.anthropic.com))
 
-### Install
+### Install and run locally
 
 ```bash
 git clone <repo-url>
 cd ttb-label-verify
 npm install
-```
-
-### Environment
-
-Copy `.env.example` to `.env.local` and add your API key:
-
-```bash
 cp .env.example .env.local
-```
-
-```
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-### Run locally
-
-```bash
+# Add your ANTHROPIC_API_KEY to .env.local
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Build for production
-
-```bash
-npm run build
-npm start
-```
-
----
-
-## Deploy to Vercel
+### Deploy to Vercel
 
 1. Push this repo to GitHub
-2. Import it at [vercel.com/new](https://vercel.com/new)
+2. Import at [vercel.com/new](https://vercel.com/new)
 3. Add `ANTHROPIC_API_KEY` under **Settings → Environment Variables**
-4. Deploy — Vercel provides the public URL
+4. Deploy
 
-> **Note:** Vercel hobby plan has a 10s serverless function timeout. Extraction targets 2–4s with the current model. If timeouts occur under load, upgrade to Vercel Pro (60s timeout, no cold starts).
+> Vercel hobby plan has a 10s serverless function timeout. Extraction targets 2–4s. Upgrade to Vercel Pro for no cold starts and a 60s timeout if needed.
 
----
-
-## Architecture
+### Architecture
 
 ```
-/types/label.ts                    Shared TypeScript types
-/lib/constants/warnings.ts         Regulatory constants (gov warning, CFR refs, ABV patterns)
-/lib/validation/fieldValidator.ts  Pure comparison logic — testable in isolation
-/lib/extraction/labelExtractor.ts  Claude Vision API call — server-side only
-/app/api/extract/route.ts          POST endpoint — extracts fields from image only
-/app/api/verify/route.ts           POST endpoint — validates pre-extracted data against application
-/app/api/verify/batch/route.ts     POST endpoint — batch verification (up to 300 labels)
-/components/
-  LabelUpload.tsx                  Drag-and-drop image upload
-  ApplicationForm.tsx              COLA application data entry
-  VerificationResult.tsx           Field-by-field results with override controls
-/app/page.tsx                      Main page / state orchestration
+/lib/extraction/labelExtractor.ts  Claude Vision API call (server-side only)
+/lib/validation/fieldValidator.ts  Pure validation logic — no AI, fully testable
+/lib/constants/warnings.ts         Regulatory constants (CFR refs, ABV patterns)
+/app/api/extract/route.ts          POST — extracts fields from image
+/app/api/verify/route.ts           POST — validates extracted data against application
+/app/api/verify/batch/route.ts     POST — batch verification (up to 300 labels)
+/components/VerificationResult.tsx Field-by-field results with override controls
+/app/page.tsx                      Main page and state orchestration
 ```
 
----
-
-## Workflow
-
-1. **Upload front label** — fields extract automatically using Claude Vision (`claude-haiku-4-5`)
-2. **Upload back label** (optional) — re-extracts and merges; best confidence per field wins
-3. **Review extracted fields** — agent corrects any errors; confidence dots indicate reliability
-4. **Verify Label** — pre-confirmed extracted data is sent to `/api/verify` alongside application data. No second vision call is made.
-5. **Review results** — per-field pass/fail/review with agent override controls
-6. **Finalize** — once all flagged fields have agent decisions recorded, approve or reject the label
-
----
-
-## Approach
-
-**Extraction:** `claude-haiku-4-5` reads the label image and returns structured JSON with all regulated TTB fields. Haiku is used for extraction speed (targets 2–4s); the structured read task does not require Sonnet-level reasoning. The prompt instructs the model to transcribe field values exactly as they appear and to infer `USA` as country of origin when the producer address contains a US state name or abbreviation.
-
-**Two-step API design:** `/api/extract` runs vision extraction only. `/api/verify` accepts the already-confirmed extracted data and runs validation only — no second vision call. This prevents verification from producing different (worse) results than the initial extraction the agent reviewed.
-
-**Validation:** A pure TypeScript validation layer (no AI) compares extracted values against application data:
-
-- **Exact or case-insensitive match** → Pass. TTB does not restrict body text casing; all-caps label text is permitted.
-- **Spacing difference only** → Warning (agent review recommended)
-- **Substantive mismatch** → Fail
-- **ABV:** Numeric value extracted before comparison to handle format variation, including pipe-separated formats (`53.5% ALC BY VOL | 107 PROOF`)
-- **Government warning:** Validated against statutory text (27 CFR 16.21). `GOVERNMENT WARNING:` prefix must appear in all caps. Body text in all caps is permitted.
-
-**Agent override flow:** Fields with fail or warning status show "Record agent decision" controls. The agent selects Accept or Reject and enters a reason. The overall status banner updates dynamically as decisions are recorded. Once all flagged fields are resolved, Finalize buttons appear to lock in the final decision.
-
-**Country of origin inference:** If no explicit country is on the label but the producer address contains a US state name or abbreviation (e.g. "Frankfort, Kentucky"), the tool infers `USA` automatically.
-
----
-
-## Tools used
-
-- **Next.js 15** (App Router) — full-stack framework, server routes keep API key server-side
-- **TypeScript** — end-to-end type safety
-- **Tailwind CSS** — utility styling
-- **Anthropic Claude Haiku** (`claude-haiku-4-5`) — vision extraction (fast, cost-efficient)
-- **Vercel** — deployment
-
----
-
-## FISMA / Security considerations
-
-This is a prototype. The following decisions were made with federal security posture in mind:
-
-| Concern | Decision |
-|---|---|
-| API key exposure | All Anthropic calls happen in server-side API routes. The key is never sent to the browser. |
-| Data persistence | **No label images or application data are stored or logged.** Processing is stateless and in-memory only. |
-| PII handling | No PII is persisted. Session IDs are ephemeral UUIDs generated per request. |
-| Audit trail | `sessionId` + `overallStatus` + field results returned in response. Production deployment would write to FedRAMP-compliant logging (marked in code). |
-| HTTPS | Enforced by Vercel by default. |
-| Input validation | Image type, size (5 MB max), and required fields validated server-side before API call. |
-| Third-party analytics | None. No data leaves the app except to `api.anthropic.com`. |
-| Network restrictions | Only outbound dependency is `api.anthropic.com`. |
-
-For production: FedRAMP-authorized hosting, formal ATO process, RBAC, and integration with TTB audit logging infrastructure would be required.
-
-### Network requirement
-
-This prototype makes outbound calls to `api.anthropic.com` (port 443/HTTPS). This is the **only** external dependency. If your network restricts outbound traffic, this domain will need to be allowlisted.
-
----
-
-## API Reference
-
-### POST /api/extract
-
-Extract fields from a label image only — no comparison. Used to auto-populate the review form.
-
-**Request body:**
-```json
-{
-  "imageBase64": "<base64-encoded image>",
-  "imageMimeType": "image/jpeg",
-  "beverageType": "distilled_spirits | wine | malt_beverage"
-}
-```
-
-**Response body:** `ExtractedLabelData` — all regulated fields with value, confidence, and confidenceNote per field.
-
----
-
-### POST /api/verify
-
-Validate pre-extracted label data against COLA application data. Skips re-extraction if `extractedData` is provided.
-
-**Request body:**
-```json
-{
-  "applicationData": {
-    "brandName": "OLD TOM DISTILLERY",
-    "classType": "Kentucky Straight Bourbon Whiskey",
-    "alcoholContent": "45% Alc./Vol. (90 Proof)",
-    "netContents": "750 mL",
-    "producerName": "Old Tom Distillery LLC",
-    "producerAddress": "Louisville, KY 40202",
-    "countryOfOrigin": "USA",
-    "beverageType": "distilled_spirits"
-  },
-  "imageBase64": "<base64-encoded image>",
-  "imageMimeType": "image/jpeg",
-  "extractedData": { ... }
-}
-```
-
-> If `extractedData` is provided, `imageBase64` and `imageMimeType` are optional — no vision call is made.
-
-**Response body:**
-```json
-{
-  "overallStatus": "approved | rejected | needs_review",
-  "sessionId": "uuid",
-  "processingMs": 44,
-  "fields": [
-    {
-      "field": "brandName",
-      "label": "Brand Name",
-      "applicationValue": "OLD TOM DISTILLERY",
-      "extractedValue": "OLD TOM DISTILLERY",
-      "status": "pass | fail | warning | not_checked",
-      "note": "Match (casing-insensitive — TTB permits all-caps label text)."
-    }
-  ],
-  "governmentWarningResult": {
-    "status": "pass | fail | warning",
-    "extracted": "<text found on label>",
-    "note": "Government warning text matches required statement."
-  }
-}
-```
-
-**Example .NET call:**
-```csharp
-using var client = new HttpClient();
-var response = await client.PostAsJsonAsync(
-    "https://your-app.vercel.app/api/verify",
-    new { applicationData, imageBase64, imageMimeType, extractedData }
-);
-var result = await response.Content.ReadFromJsonAsync<VerificationResult>();
-```
-
----
-
-### POST /api/verify/batch
-
-Verify up to 300 labels in a single request. Processed in parallel chunks of 10.
-
-**Request body:**
-```json
-[
-  { "applicationData": { ... }, "imageBase64": "...", "imageMimeType": "image/jpeg" },
-  { "applicationData": { ... }, "imageBase64": "...", "imageMimeType": "image/png" }
-]
-```
-
-**Response body:**
-```json
-[
-  { "success": true, "result": { ... } },
-  { "success": false, "error": "Extraction failed. Check image quality.", "index": 1 }
-]
-```
-
-Results are returned in the same order as the request. Failed items include an `error` string and do not affect other items in the batch.
-
----
-
-## Assumptions and limitations
-
-- **Image quality:** Extraction quality depends on label readability. Glare or extreme angles reduce accuracy; surfaced as confidence notes per field.
-- **Bold detection:** `GOVERNMENT WARNING:` must appear bold per 27 CFR 16.21. The tool checks casing (enforceable via text); bold weight requires agent visual confirmation.
-- **COLA integration:** Standalone prototype. Live COLA integration is out of scope.
-- **Performance:** Targets under 5s for extraction on Vercel. Cold starts on the hobby plan may add 2–3s. Upgrade to Vercel Pro to eliminate cold starts if needed.
-
----
-
-## CFR compliance notes
-
-### ABV tolerances (enforced)
-- Distilled spirits: ±0.3% per 27 CFR 5.65
-- Malt beverages: ±0.3% per 27 CFR 7.65
-- Wine under 14% ABV: ±1.5% per 27 CFR 4.36
-- Wine over 14% ABV: ±1.0% per 27 CFR 4.36
-
-Values within tolerance return `needs_review` so agents can confirm.
-
-### Wine ABV exceptions (enforced)
-- Wine under 7% ABV: outside TTB jurisdiction (FDA regulates). Tool flags and skips validation.
-- Wine 7–14% ABV labeled "Table Wine" or "Light Wine": ABV statement is optional per 27 CFR 4.36(a).
-- Wine over 14% ABV: ABV statement is mandatory.
-
-### "ABV" abbreviation (enforced)
-Explicitly prohibited for wine (27 CFR 4.36) and malt beverages (27 CFR 7.65). Hard fail.
-
-### Malt beverage ABV (enforced as conditional)
-Only mandatory when the product contains alcohol from added flavors or non-beverage ingredients (27 CFR 7.65). Tool surfaces a review note directing the agent to verify via application notes.
-
-### Allergen labeling (not enforced — monitoring required)
-TTB published proposed rulemaking in January 2025 (Notice No. 232) that would mandate allergen disclosures. As of April 2026, **this has not been enacted as a binding legal requirement**. Monitor [ttb.gov](https://www.ttb.gov) for final rule publication.
+Extraction uses `claude-haiku-4-5` for speed. Verification runs locally in TypeScript with no AI call — ensuring the validation logic is deterministic, auditable, and fast.
