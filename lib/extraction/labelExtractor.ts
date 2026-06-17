@@ -9,6 +9,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import type { ExtractedLabelData, BeverageType } from "../../types/label";
+import { getValidatedApiKey, redactApiKey } from "../config/apiKey";
 
 const EXTRACTION_SYSTEM_PROMPT = `You are a TTB (Alcohol and Tobacco Tax and Trade Bureau) label data extraction assistant.
 Your sole job is to read an alcohol beverage label image and extract specific regulated fields.
@@ -56,9 +57,12 @@ export async function extractLabelFields(
   imageMimeType: string,
   beverageType: BeverageType
 ): Promise<ExtractedLabelData> {
-  const client = new Anthropic();
+  const apiKey = getValidatedApiKey();
+  const client = new Anthropic({ apiKey });
 
-  const response = await client.messages.create({
+  let response;
+  try {
+    response = await client.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 1500,
     system: EXTRACTION_SYSTEM_PROMPT,
@@ -86,6 +90,16 @@ export async function extractLabelFields(
       },
     ],
   });
+  } catch (err: unknown) {
+    // Sanitize Anthropic SDK errors — they can include request metadata.
+    // Never surface raw API errors to the caller; log a redacted version only.
+    const redacted = redactApiKey(apiKey);
+    const message = err instanceof Error ? err.message : String(err);
+    // Strip any accidental key leakage from the error message before logging.
+    const sanitized = message.replace(apiKey, redacted);
+    console.error(`[extraction] Anthropic API error (key ${redacted}): ${sanitized}`);
+    throw new Error("Label extraction failed. Check image quality and try again.");
+  }
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
