@@ -99,7 +99,7 @@ function FieldRow({
         <span className="text-xs font-semibold uppercase tracking-wide opacity-70">{label}</span>
         <div className="flex items-center gap-2">
           {agentOverride && (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">
               Agent {agentOverride.decision === "accepted" ? "Accepted" : "Rejected"}
             </span>
           )}
@@ -133,12 +133,12 @@ function FieldRow({
                 type="text"
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                className="flex-1 rounded border border-current/30 bg-white/60 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                className="flex-1 rounded border border-current/30 bg-white/60 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-400"
                 autoFocus
               />
               <button
                 onClick={handleSaveEdit}
-                className="text-xs font-semibold px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                className="text-xs font-semibold px-2 py-1 rounded bg-brand-600 text-white hover:bg-brand-700"
               >
                 Re-validate
               </button>
@@ -210,13 +210,13 @@ function FieldRow({
                 placeholder="Reason for decision (required)"
                 value={overrideReason}
                 onChange={(e) => setOverrideReason(e.target.value)}
-                className="w-full rounded border border-current/30 bg-white/60 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                className="w-full rounded border border-current/30 bg-white/60 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400"
               />
               <div className="flex gap-2">
                 <button
                   onClick={handleOverrideSubmit}
                   disabled={!pendingDecision || !overrideReason.trim()}
-                  className="text-xs px-3 py-1.5 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="text-xs px-3 py-1.5 rounded bg-brand-600 text-white font-semibold hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Save decision
                 </button>
@@ -426,7 +426,7 @@ export default function VerificationResultDisplay({ result: initialResult, appli
             <span className="text-xs font-semibold uppercase tracking-wide opacity-70">Government Warning</span>
             <div className="flex gap-2 items-center">
               {result.governmentWarningResult.agentOverride && (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">
                   Agent {result.governmentWarningResult.agentOverride.decision === "accepted" ? "Accepted" : "Rejected"}
                 </span>
               )}
@@ -491,13 +491,13 @@ export default function VerificationResultDisplay({ result: initialResult, appli
                       placeholder="Reason for decision (required)"
                       value={warningOverrideReason}
                       onChange={(e) => setWarningOverrideReason(e.target.value)}
-                      className="w-full rounded border border-current/30 bg-white/60 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                      className="w-full rounded border border-current/30 bg-white/60 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400"
                     />
                     <div className="flex gap-2">
                       <button
                         onClick={() => { if (warningDecision && warningOverrideReason.trim()) { handleWarningOverride(warningDecision, warningOverrideReason.trim()); setShowWarningOverride(false); } }}
                         disabled={!warningDecision || !warningOverrideReason.trim()}
-                        className="text-xs px-3 py-1.5 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="text-xs px-3 py-1.5 rounded bg-brand-600 text-white font-semibold hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Save decision
                       </button>

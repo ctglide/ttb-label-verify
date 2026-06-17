@@ -69,8 +69,8 @@ export default function LabelUpload({ onImageReady, disabled }: LabelUploadProps
         onClick={() => !disabled && inputRef.current?.click()}
         className={`
           relative border-2 border-dashed rounded-lg p-6 text-center transition-colors
-          ${disabled ? "opacity-50 cursor-not-allowed border-slate-200" : "cursor-pointer hover:border-indigo-400"}
-          ${dragging ? "border-indigo-500 bg-indigo-50" : "border-slate-300 bg-slate-50"}
+          ${disabled ? "opacity-50 cursor-not-allowed border-slate-200" : "cursor-pointer hover:border-brand-400"}
+          ${dragging ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-slate-50"}
         `}
       >
         {preview ? (

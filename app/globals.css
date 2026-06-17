@@ -10,6 +10,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* TTB Verify brand blues — sampled from app icon */
+  --color-brand-50:  #eef4fb;
+  --color-brand-100: #d0e4f5;
+  --color-brand-200: #a0c8eb;
+  --color-brand-300: #6bb5e4;
+  --color-brand-400: #3a8fcc;
+  --color-brand-500: #0066bb;
+  --color-brand-600: #01478d;
+  --color-brand-700: #02366a;
+  --color-brand-800: #021d52;
+  --color-brand-900: #010e2e;
 }
 
 @media (prefers-color-scheme: dark) {

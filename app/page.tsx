@@ -68,7 +68,7 @@ function ImageDropZone({
       onClick={() => { if (!disabled) document.getElementById(`slot-${label}`)?.click(); }}
       className={`relative border-2 border-dashed rounded-lg transition-colors cursor-pointer ${
         disabled ? "opacity-50 cursor-not-allowed border-slate-200" :
-        dragging ? "border-indigo-500 bg-indigo-50" : "border-slate-300 bg-slate-50 hover:border-indigo-400"
+        dragging ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-slate-50 hover:border-brand-400"
       }`}
     >
       {slot ? (
@@ -284,10 +284,10 @@ export default function Home() {
             {(["single", "batch"] as Tab[]).map((t) => (
               <button key={t} onClick={() => setTab(t)}
                 className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                  tab === t ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-500 hover:text-slate-700"
+                  tab === t ? "border-brand-600 text-brand-600" : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}>
                 {t === "single" ? "Single Label" : "Batch Upload"}
-                {t === "batch" && <span className="ml-1.5 text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-semibold">up to 300</span>}
+                {t === "batch" && <span className="ml-1.5 text-xs bg-brand-100 text-brand-600 px-1.5 py-0.5 rounded-full font-semibold">up to 300</span>}
               </button>
             ))}
           </div>
@@ -297,7 +297,7 @@ export default function Home() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-800">Verification Complete</h2>
-              <button onClick={handleReset} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">← Verify another label</button>
+              <button onClick={handleReset} className="text-sm text-brand-600 hover:text-brand-800 font-medium">← Verify another label</button>
             </div>
             <VerificationResultDisplay result={result} applicationData={appData} />
           </div>
@@ -316,7 +316,7 @@ export default function Home() {
               <div className="flex gap-2 flex-wrap">
                 {BEVERAGE_TYPES.map(({ value, label }) => (
                   <label key={value} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs cursor-pointer transition-colors ${
-                    appData.beverageType === value ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold" : "border-slate-200 text-slate-600 hover:border-slate-300"
+                    appData.beverageType === value ? "border-brand-500 bg-brand-50 text-brand-700 font-semibold" : "border-slate-200 text-slate-600 hover:border-slate-300"
                   }`}>
                     <input type="radio" name="beverageType" value={value} checked={appData.beverageType === value}
                       onChange={() => setAppData((d) => ({ ...d, beverageType: value }))} className="sr-only" />
@@ -343,7 +343,7 @@ export default function Home() {
 
               {/* Extraction status */}
               {extractionState === "extracting" && (
-                <div className="flex items-center gap-2 text-sm text-indigo-600 font-medium">
+                <div className="flex items-center gap-2 text-sm text-brand-600 font-medium">
                   <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -403,7 +403,7 @@ export default function Home() {
                         onChange={(e) => setAppData((d) => ({ ...d, [key]: e.target.value }))}
                         placeholder={extractionState === "idle" ? "Upload a label first" : "Not detected"}
                         disabled={extractionState === "idle" || extractionState === "extracting"}
-                        className={`w-full rounded-md border px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400 transition-colors ${
+                        className={`w-full rounded-md border px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400 transition-colors ${
                           isLow ? "border-red-300 bg-red-50" : isMedium ? "border-amber-300 bg-amber-50" : "border-slate-200"
                         }`}
                       />
@@ -417,7 +417,7 @@ export default function Home() {
                 <button
                   onClick={handleVerify}
                   disabled={extractionState !== "extracted" || verifyState === "verifying"}
-                  className="w-full px-6 py-3 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 active:bg-indigo-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 active:bg-brand-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {verifyState === "verifying" ? (
                     <>

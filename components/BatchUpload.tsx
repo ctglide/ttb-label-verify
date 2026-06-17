@@ -43,7 +43,7 @@ function fileToImageFile(file: File): Promise<ImageFile> {
 function StatusBadge({ pair }: { pair: LabelPair }) {
   if (pair.status === "pending") return <span className="text-xs text-slate-400 font-medium">Pending</span>;
   if (pair.status === "processing") return (
-    <span className="flex items-center gap-1 text-xs text-indigo-500 font-medium">
+    <span className="flex items-center gap-1 text-xs text-brand-500 font-medium">
       <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -255,7 +255,7 @@ export default function BatchUpload() {
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-indigo-400 transition-colors bg-slate-50"
+        className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-brand-400 transition-colors bg-slate-50"
       >
         <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -323,7 +323,7 @@ export default function BatchUpload() {
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-1.5">
                     <div
-                      className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
+                      className="bg-brand-600 h-1.5 rounded-full transition-all duration-300"
                       style={{ width: `${(progress.done / progress.total) * 100}%` }}
                     />
                   </div>
@@ -333,7 +333,7 @@ export default function BatchUpload() {
                 <button
                   onClick={handleRunBatch}
                   disabled={running}
-                  className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {running ? (
                     <>
