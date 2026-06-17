@@ -199,11 +199,117 @@ TTB published proposed rulemaking in January 2025 (Notice No. 232) that would re
 
 ## Security and Privacy
 
-No label images or application data are stored by this tool. All processing happens in memory and is discarded when the session ends. Images are transmitted securely to Anthropic's AI service for reading and are not retained. No personally identifiable information is logged.
-
-This is a prototype. A production deployment for federal use would require FedRAMP-authorized hosting, a formal Authority to Operate (ATO), role-based access controls, and integration with TTB's audit logging infrastructure.
+No label images or application data are stored by this tool. All processing happens in memory and is discarded when the session ends. Images are transmitted securely to Anthropic's AI service for reading and are not retained. No personally identifiable information is logged. COLA application data processed by this tool does not contain PII — it consists of product registration information (brand name, class/type, ABV, producer business name and address, net contents).
 
 ---
+
+## FISMA / FedRAMP Compliance
+
+### Current Status
+
+**TTB Verify is a prototype and is not currently FISMA compliant.** It should not be used to process real COLA application data until an Authority to Operate (ATO) has been issued. The prototype was built with federal security posture in mind — no data persistence, no third-party analytics, server-side API key handling — but several controls required for production federal use are not yet implemented.
+
+---
+
+### Production Compliance Assumptions
+
+The following assumptions underpin the path to production compliance for TTB Verify:
+
+| Assumption | Detail |
+|---|---|
+| **FIPS 199 Impact Level** | FISMA Moderate |
+| **Cloud environment** | Azure Government (FedRAMP High authorized) |
+| **ATO inheritance** | TTB Verify would inherit applicable security controls from TTB's existing Azure Government ATO, reducing the scope of controls requiring independent assessment |
+| **AI data agreement** | Anthropic holds or would hold a federal data processing agreement covering the transmission of COLA data for AI vision processing |
+| **Authentication** | Agency SSO via Active Directory / Azure AD, enforcing MFA |
+| **ATO ownership** | TTB IT / internal ISSO |
+| **Data classification** | COLA application data (non-PII, non-CUI) |
+
+---
+
+### What Inheriting the Azure Government ATO Covers
+
+Deploying TTB Verify within TTB's existing Azure Government environment means the following NIST SP 800-53 control families would be substantially inherited from the platform ATO, rather than requiring independent implementation:
+
+- **Physical and Environmental Protection (PE)** — Azure Government data center controls
+- **Media Protection (MP)** — Storage encryption at rest (AES-256)
+- **System and Communications Protection (SC)** — Network segmentation, TLS enforcement, DDoS protection
+- **Configuration Management (CM)** — Baseline OS and platform hardening
+- **Contingency Planning (CP)** — Azure region redundancy and backup infrastructure
+- **Incident Response (IR)** — Azure Security Center alerting and Microsoft CISA coordination
+
+These controls would be documented in TTB Verify's System Security Plan (SSP) as inherited, with TTB IT responsible for confirming applicability and any agency-specific configurations.
+
+---
+
+### What TTB IT Would Need to Implement
+
+Even with ATO inheritance, the following controls require TTB-level implementation before production use:
+
+**Access Control (AC)**
+Agency SSO integration (Azure Active Directory) with MFA enforcement. Role-based access control limiting tool access to authorized compliance agents. Session timeout and concurrent session controls per NIST AC-2, AC-3, AC-12.
+
+**Audit and Accountability (AU)**
+Tamper-evident audit logging of all verification sessions — agent identity, session ID, label submission timestamp, fields reviewed, override decisions recorded, and final disposition. Logs written to Azure Monitor / Log Analytics and retained per NARA GRS 3.2 schedule. Currently the prototype generates session IDs but does not write audit records; production code stubs are marked in `app/api/verify/route.ts`.
+
+**Identification and Authentication (IA)**
+PIV/CAC or Azure AD MFA enforcement at the application layer. No anonymous access in production.
+
+**System and Services Acquisition (SA) — AI Component**
+Anthropic's federal data processing agreement must be executed and on file with TTB's contracting officer before production data is transmitted. The agreement must confirm: data is not retained beyond the API request, data is not used for model training, and processing occurs within CONUS.
+
+**Risk Assessment (RA)**
+A formal vulnerability scan of the application codebase and dependencies prior to ATO issuance. Ongoing scanning cadence per TTB's continuous monitoring plan.
+
+**Planning (PL)**
+A System Security Plan (SSP) documenting all applicable 800-53 Moderate baseline controls, inherited vs. implemented, with TTB IT as system owner.
+
+---
+
+### FISMA Moderate Control Summary
+
+| Control Family | Inherited from Azure Gov ATO | TTB IT to Implement | Status |
+|---|---|---|---|
+| Access Control (AC) | Partial | SSO, RBAC, session mgmt | ⚠️ Pending |
+| Audit & Accountability (AU) | Partial | Audit log writes, retention | ⚠️ Pending |
+| Config Management (CM) | Yes | App-level hardening | ⚠️ Pending |
+| Contingency Planning (CP) | Yes | App recovery runbook | ⚠️ Pending |
+| Identification & Auth (IA) | Partial | MFA enforcement, SSO | ⚠️ Pending |
+| Incident Response (IR) | Partial | App-level IR procedures | ⚠️ Pending |
+| Media Protection (MP) | Yes | — | ✅ Inherited |
+| Physical & Environmental (PE) | Yes | — | ✅ Inherited |
+| Planning (PL) | No | SSP authorship | ⚠️ Pending |
+| Risk Assessment (RA) | Partial | App vulnerability scan | ⚠️ Pending |
+| System & Comm. Protection (SC) | Yes | — | ✅ Inherited |
+| System & Services Acq. (SA) | No | Anthropic data agreement | ⚠️ Pending |
+| System & Info. Integrity (SI) | Partial | Dependency scanning, SIEM | ⚠️ Pending |
+
+---
+
+### What Is Already in Place
+
+The prototype was built to minimize the delta to production compliance:
+
+- **No data persistence** — all processing is stateless and in-memory; no database, no object storage, no logs written
+- **No PII processed** — COLA data is product registration information only
+- **Single external dependency** — only `api.anthropic.com` (port 443/HTTPS); no analytics, no CDN, no third-party scripts
+- **Server-side API key** — Anthropic API key never reaches the browser
+- **Input validation** — file type, size, and required fields validated server-side
+- **Audit stub** — session ID and result structure are returned per request; production audit writes are marked in code and ready to be wired to Azure Monitor
+- **HTTPS** — enforced at the platform layer
+
+---
+
+### Recommended Path to ATO
+
+1. Deploy to TTB's Azure Government subscription
+2. Execute Anthropic federal data processing agreement
+3. Integrate Azure Active Directory SSO with MFA
+4. Implement audit log writes to Azure Monitor (stub already in `route.ts`)
+5. Implement RBAC limiting access to authorized compliance agents
+6. Complete System Security Plan (SSP) referencing inherited Azure Gov controls
+7. Conduct application vulnerability scan
+8. Submit for ATO review with TTB Authorizing Official
 
 ## Technical Setup (for developers)
 
